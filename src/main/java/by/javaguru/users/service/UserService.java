@@ -4,7 +4,13 @@ import by.javaguru.users.service.dto.CreateUserDto;
 import by.javaguru.users.service.dto.UserDto;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
+
 public interface UserService {
 
     Mono<UserDto> createUser(Mono<CreateUserDto> createUserDtoMono);
+
+    Mono<UserDto> getUserById(UUID id);
+
 }

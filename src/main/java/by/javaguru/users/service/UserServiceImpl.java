@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -22,5 +24,12 @@ public class UserServiceImpl implements UserService {
                 .flatMap(userRepository::save)
                 .mapNotNull(userMapper::userEntityToUserDto);
     }
+
+    @Override
+    public Mono<UserDto> getUserById(UUID id) {
+        return userRepository.findById(id)
+                .mapNotNull(userMapper::userEntityToUserDto);
+    }
+
 
 }
