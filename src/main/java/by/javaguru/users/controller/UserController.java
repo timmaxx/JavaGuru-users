@@ -42,13 +42,10 @@ public class UserController {
     }
 
     @GetMapping
-    public Flux<UserDto> getUsers(@RequestParam(value = "offset", defaultValue = "0") int offset,
+    public Flux<UserDto> getUsers(@RequestParam(value = "page", defaultValue = "0") int page,
                                   @RequestParam(value = "limit", defaultValue = "50") int limit) {
-        return Flux.just(
-                new UserDto(UUID.randomUUID(), "Андрей", "Борисов", "javaguru.by@gmail.com"),
-                new UserDto(UUID.randomUUID(), "Алексей", "Борисов", "javaguru.by@gmail.com"),
-                new UserDto(UUID.randomUUID(), "Сергей", "Борисов", "javaguru.by@gmail.com")
-        );
+
+        return userService.findAll(page, limit);
     }
 
 }
