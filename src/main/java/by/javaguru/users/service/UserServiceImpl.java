@@ -4,6 +4,7 @@ import by.javaguru.users.data.UserRepository;
 import by.javaguru.users.service.dto.CreateUserDto;
 import by.javaguru.users.service.dto.UserDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,8 +30,14 @@ public class UserServiceImpl implements UserService {
                 .mapNotNull(userMapper::createUserDtoToUserEntity)
                 .flatMap(userRepository::save)
                 .mapNotNull(userMapper::userEntityToUserDto)
-                .onErrorMap(DuplicateKeyException.class,
-                        e -> new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage()));
+                .onErrorMap(throwable -> {
+                    if (throwable instanceof DuplicateKeyException)
+                        return new ResponseStatusException(HttpStatus.CONFLICT, throwable.getMessage());
+                    else if (throwable instanceof DataIntegrityViolationException)
+                        return new ResponseStatusException(HttpStatus.BAD_REQUEST, throwable.getMessage());
+                    else
+                        return new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, throwable.getMessage());
+                });
     }
 
     @Override
