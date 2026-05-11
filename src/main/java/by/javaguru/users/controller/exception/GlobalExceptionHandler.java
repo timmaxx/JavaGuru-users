@@ -1,5 +1,6 @@
 package by.javaguru.users.controller.exception;
 
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
@@ -8,6 +9,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.support.WebExchangeBindException;
 import reactor.core.publisher.Mono;
+
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -24,7 +27,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(WebExchangeBindException.class)
     public Mono<ErrorResponse> handleWebExchangeBindException(WebExchangeBindException exception) {
-        return Mono.just(ErrorResponse.builder(exception, HttpStatus.BAD_REQUEST, exception.getMessage()).build());
+        String message = exception.getBindingResult().getAllErrors().stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .collect(Collectors.joining(", "));
+
+        return Mono.just(ErrorResponse.builder(exception, HttpStatus.BAD_REQUEST, message).build());
     }
 
     @ExceptionHandler(Exception.class)
