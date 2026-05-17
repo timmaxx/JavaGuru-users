@@ -42,12 +42,5 @@ public class UserServiceImpl implements UserService {
                 .map(userMapper::userEntityToUserDto);
     }
 
-    @Override
-    public  Flux<UserDto> findAllByEmailContainingIgnoreCase(String email, int page, int limit) {
-        Pageable pageable = PageRequest.of(page, limit);
-
-        return userRepository.findAllByEmailContainingIgnoreCase(email, pageable)
-                .map(userMapper::userEntityToUserDto);
-    }
 
 }

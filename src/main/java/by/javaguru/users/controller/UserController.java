@@ -43,10 +43,9 @@ public class UserController {
 
     @GetMapping
     public Flux<UserDto> getUsers(@RequestParam(value = "page", defaultValue = "0") int page,
-                                  @RequestParam(value = "limit", defaultValue = "50") int limit,
-                                  @RequestParam(value = "email", defaultValue = "") String email) {
+                                  @RequestParam(value = "limit", defaultValue = "50") int limit) {
 
-        return userService.findAllByEmailContainingIgnoreCase(email, page, limit);
+        return userService.findAll(page, limit);
     }
 
 }
