@@ -16,4 +16,6 @@ public interface UserService {
 
     Flux<UserDto> findAll(int page, int limit);
 
+    Flux<UserDto> findAllByEmailContainingIgnoreCase(String email, int page, int limit);
+
 }

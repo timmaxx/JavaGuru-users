@@ -9,4 +9,6 @@ import java.util.UUID;
 public interface UserRepository extends ReactiveCrudRepository<UserEntity, UUID> {
 
     Flux<UserEntity> findAllBy(Pageable pageable);
+
+    Flux<UserEntity> findAllByEmailContainingIgnoreCase(String email, Pageable pageable);
 }
