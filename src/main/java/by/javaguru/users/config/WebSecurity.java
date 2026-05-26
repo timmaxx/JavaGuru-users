@@ -17,8 +17,9 @@ public class WebSecurity {
     @Bean
     SecurityWebFilterChain httpSecurityFilterChain(ServerHttpSecurity http) {
         return http.authorizeExchange(
-                        exchange -> exchange.pathMatchers(HttpMethod.POST, "/users")
-                                .permitAll()
+                        exchange -> exchange
+                                .pathMatchers(HttpMethod.POST, "/users").permitAll()
+                                .pathMatchers(HttpMethod.POST, "/login").permitAll()
                                 .anyExchange().authenticated())
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .build();
