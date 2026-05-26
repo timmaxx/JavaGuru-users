@@ -4,10 +4,14 @@ import by.javaguru.users.data.UserRepository;
 import by.javaguru.users.service.dto.CreateUserDto;
 import by.javaguru.users.service.dto.UserDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -24,19 +28,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Mono<UserDto> createUser(Mono<CreateUserDto> createUserDtoMono) {
-
         return createUserDtoMono
                 .map(userMapper::createUserDtoToUserEntity)
-                //  Используем пул потоков для блокирующих и тяжёлых операций
                 .publishOn(Schedulers.boundedElastic())
-                //  //  Можно было-бы сделать так (вместо boundedElastic),
-                //  //  но parallel предназначен для коротких неблокирующих
-                //  .publishOn(Schedulers.parallel())
-                //  И тогда, всё, что ниже, пойдёт в отдельном пуле потоков
                 .doOnNext(e -> e.setPassword(passwordEncoder.encode(e.getPassword())))
                 .flatMap(userRepository::save)
-                .mapNotNull(userMapper::userEntityToUserDto);
+                .map(userMapper::userEntityToUserDto);
     }
+
+
 
     @Override
     public Mono<UserDto> getUserById(UUID id) {
