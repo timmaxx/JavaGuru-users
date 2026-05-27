@@ -27,10 +27,8 @@ public class AuthenticationController {
                 .map(map -> ResponseEntity.ok()
                         .header(HttpHeaders.AUTHORIZATION, "Bearer" + map.get("token"))
                         .header("UserId", map.get("userId"))
-                        .build())
-                .onErrorReturn(BadCredentialsException.class, ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("Invalid credentials"))
-                .onErrorReturn(Exception.class, ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+                        .build());
+
     }
 
 }
