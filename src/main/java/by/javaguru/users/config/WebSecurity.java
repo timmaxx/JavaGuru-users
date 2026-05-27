@@ -22,6 +22,7 @@ public class WebSecurity {
                                 .pathMatchers(HttpMethod.POST, "/login").permitAll()
                                 .anyExchange().authenticated())
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .build();
     }
 
