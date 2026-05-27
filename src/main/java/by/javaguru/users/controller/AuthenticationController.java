@@ -4,7 +4,9 @@ import by.javaguru.users.service.AuthenticationService;
 import by.javaguru.users.service.dto.AuthenticationRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,7 +25,7 @@ public class AuthenticationController {
                         authenticationService.authenticate(authenticationRequest.getEmail(),
                                 authenticationRequest.getPassword()))
                 .map(map -> ResponseEntity.ok()
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer" + map.get("token"))
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + map.get("token"))
                         .header("UserId", map.get("userId"))
                         .build());
 
