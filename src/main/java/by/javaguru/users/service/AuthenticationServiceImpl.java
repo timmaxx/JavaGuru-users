@@ -17,6 +17,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final ReactiveAuthenticationManager reactiveAuthenticationManager;
     private final UserRepository userRepository;
+    private final JwtService jwtService;
 
     @Override
     public Mono<Map<String, String>> authenticate(String username, String password) {
@@ -32,7 +33,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private Map<String, String> createAuthResponse(UserEntity user) {
         Map<String, String> result = new HashMap<>();
         result.put("userId", user.getId().toString());
-        result.put("token", "JWT"); //TODO replace with real JWT
+        result.put("token", jwtService.generateJwt(user.getId().toString()));
         return result;
     }
 
