@@ -7,7 +7,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -37,7 +36,6 @@ public class UserController {
 
     @GetMapping("/{userId}")
     @PreAuthorize("authentication.principal.equals(#userId.toString()) or hasRole('ROLE_ADMIN')")
-//    @PostAuthorize("returnObject.body != null and (returnObject.body.id.toString.equals(authentication.principal))")
     public Mono<ResponseEntity<UserDto>> getUser(@PathVariable UUID userId) {
 
         return userService.getUserById(userId)
@@ -46,10 +44,17 @@ public class UserController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public Flux<UserDto> getUsers(@RequestParam(value = "page", defaultValue = "0") int page,
                                   @RequestParam(value = "limit", defaultValue = "50") int limit) {
-
         return userService.findAll(page, limit);
     }
 
+    @DeleteMapping("/{userId}")
+    @PreAuthorize("!authentication.principal.equals(#userId.toString()) and hasRole('ROLE_ADMIN')")
+    public Mono<ResponseEntity<Void>> deleteUser(@PathVariable UUID userId) {
+
+        return userService.deleteUserById(userId)
+                .map(userDto -> ResponseEntity.status(HttpStatus.OK).body(userDto));
+    }
 }

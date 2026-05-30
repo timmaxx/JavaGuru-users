@@ -12,6 +12,7 @@ import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -27,6 +28,7 @@ public class JwtServiceImpl implements JwtService {
                 .subject(subject)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(Date.from(Instant.now().plus(1, ChronoUnit.HOURS)))
+                .claim("roles", "USER,ADMIN")
                 .signWith(getSigningKey())
                 .compact();
     }
@@ -44,6 +46,11 @@ public class JwtServiceImpl implements JwtService {
         return parseToken(token).getSubject();
     }
 
+    @Override
+    public List<String> extractRoles(String token) {
+        return List.of(parseToken(token).get("roles").toString().split(","));
+    }
+
     private Claims parseToken(String token) {
         return Jwts.parser()
                 .verifyWith(getSigningKey())
@@ -59,6 +66,4 @@ public class JwtServiceImpl implements JwtService {
                 .orElseThrow(() -> new IllegalArgumentException("token.secret must be configured in the application properties"));
 
     }
-
-
 }

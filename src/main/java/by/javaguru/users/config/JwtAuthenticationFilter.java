@@ -6,6 +6,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
@@ -13,7 +14,7 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
-import java.util.Collections;
+import java.util.List;
 
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter implements WebFilter {
@@ -32,10 +33,17 @@ public class JwtAuthenticationFilter implements WebFilter {
     }
 
     private Mono<? extends Void> authenticateAndContinue(String token, ServerWebExchange exchange, WebFilterChain chain) {
+        List<String> roles = jwtService.extractRoles(token);
+
+        List<SimpleGrantedAuthority> authorities =
+                roles.stream()
+                        .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                        .toList();
+
         return Mono.just(jwtService.extractTokenSubject(token))
                 .flatMap(subject -> {
                     Authentication auth = new UsernamePasswordAuthenticationToken(subject, null,
-                            Collections.emptyList());
+                            authorities);
 
                     return chain.filter(exchange)
                             .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth));
