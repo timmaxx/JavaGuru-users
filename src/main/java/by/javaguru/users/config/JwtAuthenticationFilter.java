@@ -28,28 +28,30 @@ public class JwtAuthenticationFilter implements WebFilter {
         if (token == null) return chain.filter(exchange);
 
         return validateToken(token)
-                .flatMap(isValid -> isValid ? authenticateAndContinue(token, exchange, chain)
+                .flatMap(isValid -> isValid
+                        ? authenticateAndContinue(token, exchange, chain)
                         : handleInvalidToken(exchange));
     }
 
-    private Mono<? extends Void> authenticateAndContinue(String token, ServerWebExchange exchange, WebFilterChain chain) {
-        List<String> roles = jwtService.extractRoles(token);
+    private Mono<? extends Void> authenticateAndContinue(String token,
+                                                         ServerWebExchange exchange,
+                                                         WebFilterChain chain) {
 
-        List<SimpleGrantedAuthority> authorities =
-                roles.stream()
-                        .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-                        .toList();
+        return Mono.fromSupplier(() -> jwtService.extractTokenSubject(token))
+                .map(subject -> {
+                    List<SimpleGrantedAuthority> authorities = jwtService.extractRoles(token).stream()
+                            .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
+                            .map(SimpleGrantedAuthority::new)
+                            .toList();
 
-        return Mono.just(jwtService.extractTokenSubject(token))
-                .flatMap(subject -> {
-                    Authentication auth = new UsernamePasswordAuthenticationToken(subject, null,
-                            authorities);
+                    Authentication auth =
+                            new UsernamePasswordAuthenticationToken(subject, null, authorities);
 
-                    return chain.filter(exchange)
-                            .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth));
-                });
+                    return auth;
+                })
+                .flatMap(auth -> chain.filter(exchange)
+                        .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth)));
     }
-
 
     private Mono<? extends Void> handleInvalidToken(ServerWebExchange exchange) {
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -62,7 +64,6 @@ public class JwtAuthenticationFilter implements WebFilter {
         if (StringUtils.hasText(authHeader) && authHeader.startsWith("Bearer ")) {
             return authHeader.substring(7).trim();
         }
-
         return null;
     }
 

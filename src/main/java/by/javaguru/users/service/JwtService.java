@@ -6,11 +6,11 @@ import java.util.List;
 
 public interface JwtService {
 
-    String generateJwt(String subject);
+    String generateJwt(String subject, List<String> roles);
 
     Mono<Boolean> validateJwt(String token);
 
-    Object extractTokenSubject(String token);
+    String extractTokenSubject(String token);
 
     List<String> extractRoles(String token);
 }

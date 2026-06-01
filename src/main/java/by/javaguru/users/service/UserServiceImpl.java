@@ -29,13 +29,16 @@ public class UserServiceImpl implements UserService {
     public Mono<UserDto> createUser(Mono<CreateUserDto> createUserDtoMono) {
         return createUserDtoMono
                 .map(userMapper::createUserDtoToUserEntity)
+                .doOnNext(e -> {
+                    if (e.getRole() == null) {
+                        e.setRole("USER");
+                    }
+                })
                 .publishOn(Schedulers.boundedElastic())
                 .doOnNext(e -> e.setPassword(passwordEncoder.encode(e.getPassword())))
                 .flatMap(userRepository::save)
                 .map(userMapper::userEntityToUserDto);
     }
-
-
 
     @Override
     public Mono<UserDto> getUserById(UUID id) {
@@ -51,15 +54,19 @@ public class UserServiceImpl implements UserService {
                 .map(userMapper::userEntityToUserDto);
     }
 
-
     @Override
     public Mono<UserDetails> findByUsername(String username) {
         return userRepository.findByEmail(username)
-                .map(userEntity -> User
-                        .withUsername(userEntity.getEmail())
-                        .password(userEntity.getPassword())
-                        .authorities(new ArrayList<>())
-                        .build());
+                .map(userEntity -> {
+                    String role = userEntity.getRole() == null ? "USER" : userEntity.getRole();
+
+                    return org.springframework.security.core.userdetails.User
+                            .withUsername(userEntity.getEmail())
+                            .password(userEntity.getPassword())
+                            // roles(...) автоматически добавляет префикс ROLE_
+                            .roles(role)
+                            .build();
+                });
     }
 
     @Override

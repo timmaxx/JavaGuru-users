@@ -31,30 +31,28 @@ public class UserController {
                         .location(URI.create("/users/" + userDto.getId()))
                         .body(userDto)
                 );
-
     }
 
     @GetMapping("/{userId}")
-    @PreAuthorize("authentication.principal.equals(#userId.toString()) or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("authentication.principal.equals(#userId.toString()) or hasRole('ADMIN')")
     public Mono<ResponseEntity<UserDto>> getUser(@PathVariable UUID userId) {
-
         return userService.getUserById(userId)
                 .map(userDto -> ResponseEntity.status(HttpStatus.OK).body(userDto))
                 .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).build()));
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public Flux<UserDto> getUsers(@RequestParam(value = "page", defaultValue = "0") int page,
                                   @RequestParam(value = "limit", defaultValue = "50") int limit) {
         return userService.findAll(page, limit);
     }
 
     @DeleteMapping("/{userId}")
-    @PreAuthorize("!authentication.principal.equals(#userId.toString()) and hasRole('ROLE_ADMIN')")
+    @PreAuthorize("!authentication.principal.equals(#userId.toString()) and hasRole('ROLE_ADMIN')") //  ToDo 1 (TM): Почему здесь 'ROLE_'?
     public Mono<ResponseEntity<Void>> deleteUser(@PathVariable UUID userId) {
 
-        return userService.deleteUserById(userId)
+        return userService.deleteUserById(userId)   //  ToDo 2 (TM): Как при удалении существующего, так и при удалении несуществующего, ответом будет HttpStatus.OK. Правильно-ли так?
                 .map(userDto -> ResponseEntity.status(HttpStatus.OK).body(userDto));
     }
 }

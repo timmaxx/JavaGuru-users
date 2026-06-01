@@ -11,24 +11,23 @@ import reactor.core.publisher.Mono;
 import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class JwtServiceImpl implements JwtService {
 
+    private static final String ROLES_CLAIM = "roles";
+
     private final Environment environment;
 
-
     @Override
-    public String generateJwt(String subject) {
+    public String generateJwt(String subject, List<String> roles) {
         return Jwts.builder()
                 .subject(subject)
+                .claim(ROLES_CLAIM, roles)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(Date.from(Instant.now().plus(1, ChronoUnit.HOURS)))
-                .claim("roles", "USER,ADMIN")
                 .signWith(getSigningKey())
                 .compact();
     }
@@ -42,13 +41,28 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public Object extractTokenSubject(String token) {
+    public String extractTokenSubject(String token) {
         return parseToken(token).getSubject();
     }
 
     @Override
     public List<String> extractRoles(String token) {
-        return List.of(parseToken(token).get("roles").toString().split(","));
+        Claims claims = parseToken(token);
+        Object raw = claims.get(ROLES_CLAIM);
+
+        if (raw == null) {
+            return List.of();
+        }
+
+        // jwt lib отдаёт List<?> (часто List<String>)
+        if (raw instanceof List<?> list) {
+            return list.stream()
+                    .filter(Objects::nonNull)
+                    .map(Object::toString)
+                    .toList();
+        }
+
+        return List.of(raw.toString());
     }
 
     private Claims parseToken(String token) {
@@ -63,7 +77,8 @@ public class JwtServiceImpl implements JwtService {
         return Optional.ofNullable(environment.getProperty("token.secret"))
                 .map(String::getBytes)
                 .map(Keys::hmacShaKeyFor)
-                .orElseThrow(() -> new IllegalArgumentException("token.secret must be configured in the application properties"));
-
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "token.secret must be configured in the application properties"
+                ));
     }
 }
