@@ -6,6 +6,7 @@ import by.javaguru.users.service.dto.UserDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,6 +15,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.UUID;
 
 @RestController
@@ -50,6 +52,12 @@ public class UserController {
                                   @RequestParam(value = "limit", defaultValue = "50") int limit) {
 
         return userService.findAll(page, limit);
+    }
+
+    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<String> streamUsers() {
+        return Flux.interval(Duration.ofSeconds(1))
+                .map(aLong -> "Event: " + aLong);
     }
 
 }

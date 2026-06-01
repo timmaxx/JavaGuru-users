@@ -31,6 +31,7 @@ public class WebSecurity {
                         exchange -> exchange
                                 .pathMatchers(HttpMethod.POST, "/users").permitAll()
                                 .pathMatchers(HttpMethod.POST, "/login").permitAll()
+                                .pathMatchers(HttpMethod.GET, "/users/stream").permitAll()
                                 .anyExchange().authenticated())
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
