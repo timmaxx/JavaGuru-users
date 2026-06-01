@@ -3,8 +3,8 @@ package by.javaguru.users.data;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
-
 import java.util.UUID;
+
 
 @Table(name = "users")
 @Getter
@@ -24,7 +24,4 @@ public class UserEntity {
     private String email;
 
     private String password;
-
-    // NEW
-    private String role; // "USER" | "ADMIN"
 }
