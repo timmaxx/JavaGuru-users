@@ -4,18 +4,15 @@ import by.javaguru.users.data.UserRepository;
 import by.javaguru.users.service.dto.CreateUserDto;
 import by.javaguru.users.service.dto.UserDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.ArrayList;
@@ -28,6 +25,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final Sinks.Many<UserDto> usersSink;
 
     @Override
     public Mono<UserDto> createUser(Mono<CreateUserDto> createUserDtoMono) {
@@ -36,7 +34,8 @@ public class UserServiceImpl implements UserService {
                 .publishOn(Schedulers.boundedElastic())
                 .doOnNext(e -> e.setPassword(passwordEncoder.encode(e.getPassword())))
                 .flatMap(userRepository::save)
-                .map(userMapper::userEntityToUserDto);
+                .map(userMapper::userEntityToUserDto)
+                .doOnSuccess(usersSink::tryEmitNext);
     }
 
 
@@ -53,6 +52,13 @@ public class UserServiceImpl implements UserService {
 
         return userRepository.findAllBy(pageable)
                 .map(userMapper::userEntityToUserDto);
+    }
+
+    @Override
+    public Flux<UserDto> streamUser() {
+        return usersSink.asFlux()
+                .publish()
+                .autoConnect(1);
     }
 
 
