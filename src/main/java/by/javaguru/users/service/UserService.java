@@ -13,7 +13,7 @@ public interface UserService extends ReactiveUserDetailsService {
 
     Mono<UserDto> createUser(Mono<CreateUserDto> createUserDtoMono);
 
-    Mono<UserDto> getUserById(UUID id);
+    Mono<UserDto> getUserById(UUID id, Boolean isAlbum, String jwt);
 
     Flux<UserDto> findAll(int page, int limit);
 

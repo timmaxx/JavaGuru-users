@@ -40,9 +40,11 @@ public class UserController {
     @GetMapping("/{userId}")
     @PreAuthorize("authentication.principal.equals(#userId.toString()) or hasRole('ROLE_ADMIN')")
 //    @PostAuthorize("returnObject.body != null and (returnObject.body.id.toString.equals(authentication.principal))")
-    public Mono<ResponseEntity<UserDto>> getUser(@PathVariable UUID userId) {
+    public Mono<ResponseEntity<UserDto>> getUser(@PathVariable UUID userId,
+                                                 @RequestParam(name = "isAlbum", required = false) Boolean isAlbum,
+                                                 @RequestHeader(name = "Authorization") String jwt) {
 
-        return userService.getUserById(userId)
+        return userService.getUserById(userId, isAlbum, jwt)
                 .map(userDto -> ResponseEntity.status(HttpStatus.OK).body(userDto))
                 .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).build()));
     }
