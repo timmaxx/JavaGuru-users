@@ -1,9 +1,11 @@
 #version: '3.8'
 
+name: java_guru_reactive_java_postgresql_data_users
+
 services:
   db:
     image: postgres:16
-    container_name: react-java-db
+    container_name: java_guru_reactive_java_postgresql_data_users
     volumes:
       - db-data:/var/lib/postgresql/data
     environment:
@@ -16,3 +18,4 @@ services:
 
 volumes:
   db-data:
+    name: "java_guru_reactive_java_postgresql_data_db_users"
